@@ -1,0 +1,8 @@
+{
+  "name": "diy-autohalli-planner",
+  "private": true,
+  "description": "Shared project planner hosted on Vercel, data stored in Upstash Redis",
+  "dependencies": {
+    "@upstash/redis": "^1.34.0"
+  }
+}
