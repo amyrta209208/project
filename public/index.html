@@ -2137,7 +2137,97 @@ function bindReportImageResize(editor){
   document.addEventListener('pointerdown',e=>{if(!editor.contains(e.target)&&!reportImageResizeOverlay?.contains(e.target))clearReportImageSelection()},true);
   window.addEventListener('resize',positionReportImageResizeUI);window.addEventListener('scroll',positionReportImageResizeUI,true);
 }
-async function reportDownload(id){const r=(state.reports||[]).find(x=>x.id===id);if(!r)return;const wrap=document.createElement('div');wrap.innerHTML=r.content||'';normalizeReportImageBlocks(wrap);const media=Array.from(wrap.querySelectorAll('[data-report-media-id]'));for(const fig of media){const mediaId=fig.dataset.reportMediaId;const kind=fig.dataset.reportMediaType;const name=fig.dataset.reportMediaName||'';let rec=null;try{rec=await getReportMedia(mediaId)}catch(e){}const existing=reportMediaPlayer(fig);if(kind==='image'&&(rec?.blob||fig.dataset.reportEmbedded==='true'||existing?.src)){const img=document.createElement('img');img.alt='';const savedWidth=existing?.style?.width||existing?.getAttribute('width')||'';img.style.cssText='max-width:100%;height:auto;display:block;margin:12px auto;border:0;padding:0;box-shadow:none;background:transparent'+(savedWidth?';width:'+savedWidth:'');img.src=rec?.blob?await blobToDataURL(rec.blob):(existing?.src||'');fig.replaceWith(img)}else if(kind==='image'){const p=document.createElement('p');p.textContent='[Image unavailable — re-add the image in Project Planner Reporting.]';fig.replaceWith(p)}else{const p=document.createElement('p');p.style.cssText='padding:8px 10px;border:1px solid #d8d2de;background:#f8f5fc;color:#514960';p.textContent=(kind==='audio'?'Audio recording: ':'Video attachment: ')+(name||'Media file')+' (media player is available in Project Planner Reporting)';fig.replaceWith(p)}}const docTitle=r.title||'Untitled document';const html='<!doctype html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><meta name="ProgId" content="Word.Document"><meta name="Generator" content="Project Planner"><title>'+esc(docTitle)+'</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>body{max-width:850px;margin:36pt auto;padding:0 24px;font:11pt/1.55 Calibri,Arial,sans-serif;color:#263044}h1,h2,h3{line-height:1.25;color:#263044}h1{font-size:22pt}h2{font-size:17pt}h3{font-size:13pt}img{max-width:100%;height:auto;border:0;box-shadow:none;background:transparent}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:5pt 7pt}</style></head><body><h1>'+esc(docTitle)+'</h1>'+wrap.innerHTML+'</body></html>';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'}));a.download=reportWordSafeFilename(docTitle)+'.doc';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
+async function reportDownload(id){const r=(state.reports||[]).find(x=>x.id===id);if(!r)return;const wrap=document.createElement('div');wrap.innerHTML=r.content||'';normalizeReportImageBlocks(wrap);const media=Array.from(wrap.querySelectorAll('[data-report-media-id]'));for(const fig of media){const mediaId=fig.dataset.reportMediaId;const kind=fig.dataset.reportMediaType;const name=fig.dataset.reportMediaName||'';let rec=null;try{rec=await getReportMedia(mediaId)}catch(e){}const existing=reportMediaPlayer(fig);if(kind==='image'&&(rec?.blob||fig.dataset.reportEmbedded==='true'||existing?.src)){const img=document.createElement('img');img.alt='';const savedWidth=existing?.style?.width||existing?.getAttribute('width')||'';img.style.cssText='max-width:100%;height:auto;display:block;margin:12px auto;border:0;padding:0;box-shadow:none;background:transparent'+(savedWidth?';width:'+savedWidth:'');img.src=rec?.blob?await blobToDataURL(rec.blob):(existing?.src||'');fig.replaceWith(img)}else if(kind==='image'){const p=document.createElement('p');p.textContent='[Image unavailable — re-add the image in Project Planner Reporting.]';fig.replaceWith(p)}else{const p=document.createElement('p');p.style.cssText='padding:8px 10px;border:1px solid #d8d2de;background:#f8f5fc;color:#514960';p.textContent=(kind==='audio'?'Audio recording: ':'Video attachment: ')+(name||'Media file')+' (media player is available in Project Planner Reporting)';fig.replaceWith(p)}}const docTitle=r.title||'Untitled document';const html='<!doctype html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><meta name="ProgId" content="Word.Document"><meta name="Generator" content="Project Planner"><title>'+esc(docTitle)+'</title><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]--><style>body{max-width:850px;margin:36pt auto;padding:0 24px;font:11pt/1.55 Calibri,Arial,sans-serif;color:#263044}h1,h2,h3{line-height:1.25;color:#263044}h1{font-size:22pt}h2{font-size:17pt}h3{font-size:13pt}img{max-width:100%;height:auto;border:0;box-shadow:none;background:transparent}table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:5pt 7pt}</style></head><body><h1>'+esc(docTitle)+'</h1>'+wrap.innerHTML+'
+<style id="language-switcher-style">
+#languagePicker{font:inherit;font-size:12px;max-width:112px;padding:5px 8px;border:1px solid rgba(120,130,150,.35);border-radius:999px;background:rgba(255,255,255,.9);color:#26334a;cursor:pointer}
+</style>
+<script id="language-switcher-script">
+(function(){
+  const translations={
+    "Project planner":"Projektisuunnittelija",
+    "Plan tasks, track progress, organize side jobs, and stay on schedule. Changes are shared with everyone who opens this page.":"Suunnittele tehtäviä, seuraa edistymistä, järjestä sivutöitä ja pysy aikataulussa. Muutokset näkyvät kaikille, jotka avaavat tämän sivun.",
+    "PROJECT TIMELINE":"PROJEKTIN AIKAJANA",
+    "Tasks":"Tehtävät","Task":"Tehtävä","Add task":"Lisää tehtävä","Add Task":"Lisää tehtävä",
+    "New task":"Uusi tehtävä","Task name":"Tehtävän nimi","Description":"Kuvaus",
+    "Start date":"Aloituspäivä","Due date":"Määräpäivä","End date":"Päättymispäivä",
+    "Status":"Tila","Priority":"Prioriteetti","Assignee":"Vastuuhenkilö","Owner":"Omistaja",
+    "Category":"Luokka","Project":"Projekti","Projects":"Projektit","Notes":"Muistiinpanot",
+    "Save":"Tallenna","Cancel":"Peruuta","Delete":"Poista","Edit":"Muokkaa","Close":"Sulje",
+    "Search":"Hae","Filter":"Suodata","All":"Kaikki","Today":"Tänään","This week":"Tällä viikolla",
+    "Overdue":"Myöhässä","Completed":"Valmis","Complete":"Valmis","In progress":"Käynnissä",
+    "Not started":"Ei aloitettu","On hold":"Odottaa","Blocked":"Estynyt",
+    "Low":"Matala","Medium":"Keskitaso","High":"Korkea","Critical":"Kriittinen",
+    "List":"Luettelo","Timeline":"Aikajana","Structure":"Rakenne","Risk":"Riskit","Reporting":"Raportointi",
+    "Reports":"Raportit","Add":"Lisää","Add new":"Lisää uusi","Update":"Päivitä",
+    "Progress":"Edistyminen","Team":"Tiimi","Members":"Jäsenet","Milestone":"Välitavoite",
+    "Milestones":"Välitavoitteet","Start":"Aloita","Finish":"Valmis","Duration":"Kesto",
+    "Hours":"Tunnit","Estimated hours":"Arvioidut tunnit","Actual hours":"Toteutuneet tunnit",
+    "Risk analysis":"Riskianalyysi","Risk level":"Riskitaso","Probability":"Todennäköisyys",
+    "Impact":"Vaikutus","Mitigation":"Hallintatoimi","Export":"Vie","Print":"Tulosta",
+    "Settings":"Asetukset","Language":"Kieli","English":"Englanti","Finnish":"Suomi",
+    "Switch to dark theme":"Vaihda tummaan teemaan","Switch to light theme":"Vaihda vaaleaan teemaan",
+    "Amber & Cobalt":"Meripihka ja koboltti","Teal & Azure":"Sinivihreä ja taivaansininen"
+  };
+  const attrs=["title","aria-label","placeholder"];
+  const originals=new WeakMap();
+  let language="en",busy=false;
+  function translate(value){
+    if(language!=="fi") return value;
+    const trimmed=value.trim();
+    if(translations[trimmed]) return value.replace(trimmed,translations[trimmed]);
+    return value;
+  }
+  function rememberText(node){
+    if(!originals.has(node)) originals.set(node,node.nodeValue);
+    const source=originals.get(node);
+    const next=language==="fi"?translate(source):source;
+    if(node.nodeValue!==next) node.nodeValue=next;
+  }
+  function rememberAttr(el,name){
+    let record=originals.get(el); if(!record){record={};originals.set(el,record);}
+    if(!(name in record)) record[name]=el.getAttribute(name);
+    const source=record[name]; const next=language==="fi"?translate(source):source;
+    if(el.getAttribute(name)!==next) el.setAttribute(name,next);
+  }
+  function scan(root){
+    if(root.nodeType===Node.TEXT_NODE){rememberText(root);return;}
+    if(root.nodeType!==Node.ELEMENT_NODE && root!==document) return;
+    if(root.nodeType===Node.ELEMENT_NODE) attrs.forEach(a=>{if(root.hasAttribute(a))rememberAttr(root,a);});
+    root.childNodes.forEach(scan);
+  }
+  function apply(lang){
+    language=lang; document.documentElement.lang=lang;
+    scan(document.body);
+    const picker=document.getElementById("languagePicker");
+    if(picker) picker.value=lang;
+    try{localStorage.setItem("projectPlannerLanguage",lang);}catch(e){}
+  }
+  function init(){
+    const holder=document.querySelector(".palettePicker");
+    if(holder && !document.getElementById("languagePicker")){
+      const select=document.createElement("select");
+      select.id="languagePicker";select.setAttribute("aria-label","Language");
+      select.innerHTML='<option value="en">English</option><option value="fi">Suomi</option>';
+      select.addEventListener("change",()=>apply(select.value));
+      holder.appendChild(select);
+    }
+    let saved="en";try{saved=localStorage.getItem("projectPlannerLanguage")||"en";}catch(e){}
+    apply(saved==="fi"?"fi":"en");
+    const observer=new MutationObserver(records=>{
+      if(busy)return;busy=true;
+      records.forEach(record=>{
+        if(record.type==="childList") record.addedNodes.forEach(scan);
+        else if(record.type==="characterData") rememberText(record.target);
+        else if(record.type==="attributes") rememberAttr(record.target,record.attributeName);
+      });
+      busy=false;
+    });
+    observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:attrs});
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+</body></html>';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff',html],{type:'application/msword;charset=utf-8'}));a.download=reportWordSafeFilename(docTitle)+'.doc';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
 function bindReporting(){if(state.view!=='reporting')return;const editor=$('#reportEditor'),title=$('#reportTitle');if(!editor)return;normalizeReportImageBlocks(editor);bindReportImageResize(editor);applyReportZoom(editor);$('#reportZoomOut')?.addEventListener('click',()=>changeReportZoom(-.1));$('#reportZoomIn')?.addEventListener('click',()=>changeReportZoom(.1));$('#reportZoomValue')?.addEventListener('click',()=>{reportZoomLevel=1;applyReportZoom(editor)});const persistReportDraft=(rerender=false)=>{let r=state.reports.find(x=>x.id===state.activeReportId);if(!r){r={id:'report_'+Date.now(),title:'Untitled document',content:''};state.reports.push(r);state.activeReportId=r.id;}r.title=title.value.trim()||'Untitled document';r.content=serializeReportEditor();state.reportDraft=r.content;save();if(rerender)render();};const saveDoc=()=>persistReportDraft(true);$('#reportNew')?.addEventListener('click',()=>{state.activeReportId=null;state.reportDraft='';reportSavedRange=null;render();$('#reportTitle')?.focus()});$('#reportSave')?.addEventListener('click',saveDoc);$('#reportDownload')?.addEventListener('click',async()=>{const oldId=state.activeReportId;let r=state.reports.find(x=>x.id===oldId);if(!r){r={id:'report_'+Date.now(),title:'Untitled document',content:''};state.reports.push(r);state.activeReportId=r.id;}r.title=title.value.trim()||'Untitled document';r.content=serializeReportEditor();state.reportDraft=r.content;save();await reportDownload(r.id)});editor.addEventListener('input',()=>{state.reportDraft=serializeReportEditor();saveReportSelection();persistReportDraft(false)});title.addEventListener('input',()=>persistReportDraft(false));const changeReportFontSize=(delta)=>{restoreReportSelection(editor);editor.focus();let sel=window.getSelection();if(!sel||!sel.rangeCount)return;let range=sel.getRangeAt(0);const currentNode=range.startContainer.nodeType===Node.TEXT_NODE?range.startContainer.parentElement:range.startContainer;const existing=parseFloat(getComputedStyle(currentNode).fontSize)||16;const size=Math.max(8,Math.min(72,existing+delta));const span=document.createElement('span');span.style.fontSize=size+'px';if(range.collapsed){span.appendChild(document.createTextNode('\u200b'));range.insertNode(span);range.setStart(span.firstChild,1);range.collapse(true);}else{try{span.appendChild(range.extractContents());range.insertNode(span);range.selectNodeContents(span);}catch(e){return}}sel.removeAllRanges();sel.addRange(range);saveReportSelection();state.reportDraft=serializeReportEditor();persistReportDraft(false)};$('#reportFontSmaller')?.addEventListener('mousedown',saveReportSelection);$('#reportFontLarger')?.addEventListener('mousedown',saveReportSelection);$('#reportFontSmaller')?.addEventListener('click',()=>changeReportFontSize(-2));$('#reportFontLarger')?.addEventListener('click',()=>changeReportFontSize(2));editor.addEventListener('keyup',saveReportSelection);editor.addEventListener('mouseup',saveReportSelection);editor.addEventListener('focus',saveReportSelection);document.addEventListener('selectionchange',saveReportSelection);$('#reportFormat')?.addEventListener('change',e=>{restoreReportSelection(editor);document.execCommand('formatBlock',false,e.target.value);saveReportSelection();persistReportDraft(false)});document.querySelectorAll('[data-cmd]').forEach(b=>b.addEventListener('mousedown',saveReportSelection));document.querySelectorAll('[data-cmd]').forEach(b=>b.addEventListener('click',()=>{restoreReportSelection(editor);document.execCommand(b.dataset.cmd,false,null);saveReportSelection();persistReportDraft(false)}));$('#reportAddImage')?.addEventListener('mousedown',saveReportSelection);$('#reportAddAudio')?.addEventListener('mousedown',saveReportSelection);$('#reportAddVideo')?.addEventListener('mousedown',saveReportSelection);$('#reportAddImage')?.addEventListener('click',()=>$('#reportImageFiles').click());$('#reportAddAudio')?.addEventListener('click',()=>$('#reportAudioFiles').click());$('#reportAddVideo')?.addEventListener('click',()=>$('#reportVideoFiles').click());$('#reportImageFiles')?.addEventListener('change',async e=>{await reportImportFiles(e.target.files,'image');e.target.value=''});$('#reportAudioFiles')?.addEventListener('change',async e=>{await reportImportFiles(e.target.files,'audio');e.target.value=''});$('#reportVideoFiles')?.addEventListener('change',async e=>{await reportImportFiles(e.target.files,'video');e.target.value=''});editor.addEventListener('paste',async e=>{const cd=e.clipboardData;if(!cd)return;const files=[];for(const item of Array.from(cd.items||[])){if(item.kind==='file'){const f=item.getAsFile();if(f&&(f.type.startsWith('image/')||f.type.startsWith('audio/')||f.type.startsWith('video/')))files.push(f)}}if(!files.length)return;e.preventDefault();saveReportSelection();const text=cd.getData('text/plain');if(text){restoreReportSelection(editor);document.execCommand('insertText',false,text);saveReportSelection()}for(const f of files){const kind=f.type.startsWith('image/')?'image':f.type.startsWith('audio/')?'audio':'video';await reportImportFiles([f],kind)}});document.querySelectorAll('[data-report-open]').forEach(b=>b.addEventListener('click',e=>{if(e.target.closest('[data-report-download]')){e.preventDefault();e.stopPropagation();const current=state.reports.find(r=>r.id===b.dataset.reportOpen);if(current)reportDownload(current.id);return}if(e.target.closest('[data-report-delete]')){e.preventDefault();e.stopPropagation();if(confirm('Delete this document?')){state.reports=state.reports.filter(r=>r.id!==b.dataset.reportOpen);if(state.activeReportId===b.dataset.reportOpen)state.activeReportId=null;save();render()}return}persistReportDraft(false);saveReportSelection();state.activeReportId=b.dataset.reportOpen;state.reportDraft='';reportSavedRange=null;render()}));
   let draggedReportId=null;document.querySelectorAll('[data-report-open]').forEach(card=>{card.addEventListener('dragstart',e=>{draggedReportId=card.dataset.reportOpen;card.classList.add('reportDragging');if(e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',draggedReportId)}});card.addEventListener('dragover',e=>{if(!draggedReportId||draggedReportId===card.dataset.reportOpen)return;e.preventDefault();card.classList.add('reportDropTarget');if(e.dataTransfer)e.dataTransfer.dropEffect='move'});card.addEventListener('dragleave',()=>card.classList.remove('reportDropTarget'));card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('reportDropTarget');const from=draggedReportId||e.dataTransfer?.getData('text/plain');const to=card.dataset.reportOpen;if(!from||!to||from===to)return;const arr=state.reports;const fi=arr.findIndex(x=>x.id===from),ti=arr.findIndex(x=>x.id===to);if(fi<0||ti<0)return;const moved=arr.splice(fi,1)[0];arr.splice(ti,0,moved);save();render()});card.addEventListener('dragend',()=>{draggedReportId=null;document.querySelectorAll('.reportDoc').forEach(x=>x.classList.remove('reportDragging','reportDropTarget'))})});
   const colorPicker=$('#reportTextColor');colorPicker?.addEventListener('mousedown',saveReportSelection);colorPicker?.addEventListener('input',()=>{restoreReportSelection(editor);editor.focus();document.execCommand('foreColor',false,colorPicker.value);saveReportSelection();state.reportDraft=serializeReportEditor();persistReportDraft(false)});
